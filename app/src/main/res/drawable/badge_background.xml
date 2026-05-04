@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!--
+        This creates a rounded rectangle shape for the type badge
+        Like border-radius: 999px in CSS to make a pill shape
+    -->
+    <corners android:radius="999dp"/>
+    <solid android:color="#1E3A5F"/>
+    <!--
+        solid color is the badge background fill
+        #1E3A5F is a dark navy blue — like your badge bg in React
+        The text color on top of it is set in item_block.xml
+    -->
+    <stroke
+        android:width="1dp"
+        android:color="#2563EB"/>
+    <!--
+        stroke adds a 1dp border around the badge
+        Like border border-blue-600 in Tailwind
+        The color will be changed per block type in Kotlin
+    -->
+</shape>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A0F1E">
+    <!--
+        LinearLayout stacks its children vertically
+        Child 1 = FrameLayout (takes up all available space)
+        Child 2 = BottomNavigationView (sits at the bottom)
+        Like a flex column with the nav pinned to the bottom
+    -->
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <!--
+        FrameLayout is the content area — like a blank canvas
+        Each tab swaps a different Fragment into this container
+        layout_height=0dp + layout_weight=1 means:
+        "take up ALL remaining space after the bottom nav"
+        Same as flex:1 in CSS — fills everything except the nav bar
+        This is where Schedule, Weekly, Profile, About will show
+    -->
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#111827"
+        app:itemIconTint="#8899BB"
+        app:itemTextColor="#8899BB"
+        app:itemActiveIndicatorColor="#1E2A45"
+        app:selectedItemIconTint="#3B82F6"
+        app:selectedItemTextColor="#3B82F6"
+        app:menu="@menu/bottom_nav_menu"/>
+    <!--
+        BottomNavigationView is the tab bar at the bottom
+        android:background=#111827 is the dark navy bar background
+        itemIconTint=#8899BB is the muted color for unselected icons
+        itemTextColor=#8899BB is the muted color for unselected labels
+        selectedItemIconTint=#3B82F6 is blue for the active tab icon
+        selectedItemTextColor=#3B82F6 is blue for the active tab label
+        itemActiveIndicatorColor=#1E2A45 is the pill behind active icon
+        app:menu connects this view to our bottom_nav_menu.xml file
+    -->
+
+</LinearLayout>

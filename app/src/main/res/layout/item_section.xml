@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="8dp"
+    android:background="#0A0F1E"
+    android:paddingTop="16dp">
+    <!--
+        This is the section header that appears ABOVE each group of cards
+        orientation=vertical means its two children stack top to bottom
+        paddingTop=16dp adds space above each section header
+        so Morning, Classes, Afternoon, Evening all have breathing room
+        between them — like your mt-8 mb-2 in React
+    -->
+
+    <!-- TOP ROW — section name + time range -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+        <!--
+            This inner horizontal row holds two things side by side:
+            1. Section name on the LEFT — "Morning"
+            2. Time range on the RIGHT — "6:00 – 11:00"
+            Like <div className="flex justify-between"> in React
+        -->
+
+        <!-- SECTION NAME -->
+        <TextView
+            android:id="@+id/tvSectionName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Morning"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"/>
+        <!--
+            layout_width=0dp + layout_weight=1 = flex:1 in CSS
+            This makes the section name take all available space
+            pushing the time range all the way to the right
+            textColor=#FFFFFF is white — like text-foreground in React
+            textSize=18sp is like text-lg in Tailwind
+        -->
+
+        <!-- TIME RANGE -->
+        <TextView
+            android:id="@+id/tvSectionTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="6:00 – 11:00"
+            android:textColor="#8899BB"
+            android:textSize="12sp"/>
+        <!--
+            wrap_content means it is only as wide as its text
+            layout_gravity=center_vertical aligns it to the middle
+            vertically so it lines up nicely with the section name
+            textColor=#8899BB is muted navy — like text-muted-foreground
+        -->
+
+    </LinearLayout>
+
+    <!-- DIVIDER LINE -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1E2A45"
+        android:layout_marginBottom="12dp"/>
+    <!--
+        This is the thin horizontal line under each section header
+        height=1dp makes it a hairline — like <hr> in HTML
+        or border-b in Tailwind
+        background=#1E2A45 is a dark navy — subtle, not too bright
+        marginBottom=12dp adds space between the line and the first card
+    -->
+
+</LinearLayout>

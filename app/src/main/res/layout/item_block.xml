@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#111827"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+    <!--
+        CardView is Android's equivalent of a <div className="card shadow rounded">
+        It gives you the rounded corners and shadow (elevation) automatically
+        cardBackgroundColor="#111827" is the dark navy card color
+        cardCornerRadius=12dp rounds the corners — like border-radius: 12px in CSS
+        cardElevation=4dp adds a subtle shadow below the card — like shadow-md in Tailwind
+        layout_marginBottom=12dp adds space between cards — like mb-3 in Tailwind
+    -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!--
+            This horizontal LinearLayout is the outermost row inside the card
+            It holds TWO children side by side:
+            1. The colored left border strip
+            2. The rest of the card content
+            This is how we create the colored left border you had in React
+            using border-left-4 border-blue-500 etc
+        -->
+
+        <!-- LEFT COLOR BORDER -->
+        <View
+            android:id="@+id/viewColorBorder"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="#2563EB"/>
+        <!--
+            This is the colored left border strip on each card
+            It is just a plain View with a fixed width of 5dp
+            The color (#2563EB = blue for coding) will be changed in Kotlin
+            based on the block type — same as your typeStyles borderColor in React
+            match_parent height means it stretches the full height of the card
+        -->
+
+        <!-- CARD CONTENT -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <!--
+                This vertical LinearLayout holds all the card content
+                stacked from top to bottom — like a flex column div in React
+                padding=16dp adds breathing room inside the card on all sides
+            -->
+
+            <!-- TOP ROW — time + badges -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                <!--
+                    This inner horizontal row holds the time on the left
+                    and the NOW + type badges on the right
+                    Like <div className="flex justify-between"> in React
+                -->
+
+                <!-- TIME TEXT -->
+                <TextView
+                    android:id="@+id/tvTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="7:30 – 11:00"
+                    android:textColor="#8899BB"
+                    android:textSize="12sp"/>
+                <!--
+                    layout_width=0dp + layout_weight=1 = flex:1 in CSS
+                    This pushes the badges all the way to the right
+                    #8899BB is muted navy blue — like text-muted-foreground
+                -->
+
+                <!-- NOW BADGE -->
+                <TextView
+                    android:id="@+id/tvNowBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="● NOW"
+                    android:textColor="#3B82F6"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="6dp"
+                    android:visibility="gone"/>
+                <!--
+                    This is the pulsing NOW badge from your React schedule
+                    visibility="gone" means it is INVISIBLE and takes NO space by default
+                    In Kotlin we will set it to visibility="visible" when
+                    isCurrentBlock() returns true — same as your conditional rendering:
+                    {isCurrentBlock(block) && <span>NOW</span>}
+                    #3B82F6 is blue-500 — the same NOW color as React
+                -->
+
+                <!-- TYPE BADGE -->
+                <TextView
+                    android:id="@+id/tvTypeBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CODING"
+                    android:textColor="#2563EB"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/badge_background"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"/>
+                <!--
+                    This is the colored type badge — CODING, ROUTINE, SLEEP etc
+                    The text and color change per block type in Kotlin
+                    badge_background is a drawable XML file we will create
+                    It gives the badge its rounded pill shape
+                    Like your <span className="badge rounded-full"> in React
+                -->
+
+            </LinearLayout>
+
+            <!-- BLOCK TITLE -->
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Deep coding session 1"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"/>
+            <!--
+                The main title of the block — white and bold
+                Like your <h3 className="font-semibold text-foreground"> in React
+            -->
+
+            <!-- BLOCK DESCRIPTION -->
+            <TextView
+                android:id="@+id/tvDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Most important block — deep focus, no distractions"
+                android:textColor="#8899BB"
+                android:textSize="13sp"
+                android:layout_marginBottom="8dp"/>
+            <!--
+                The smaller description text below the title
+                Like your <p className="text-sm text-muted-foreground"> in React
+            -->
+
+            <!-- MOTIVATION QUOTE -->
+            <TextView
+                android:id="@+id/tvMotivation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💻 Lock in and build something great"
+                android:textColor="#4B6A9B"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                android:layout_marginBottom="12dp"/>
+            <!--
+                The italic motivation quote at the bottom of the card
+                #4B6A9B is a dimmer navy blue — like your text-muted in React
+                textStyle=italic is like font-italic in CSS
+            -->
+
+            <!-- MARK DONE BUTTON -->
+            <Button
+                android:id="@+id/btnMarkDone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mark Done"
+                android:textColor="#8899BB"
+                android:textSize="13sp"
+                android:backgroundTint="#1E2A45"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+            <!--
+                The Mark Done button at the bottom of each card
+                When clicked in Kotlin it will:
+                1. Turn green and show a checkmark ✓
+                2. Save the done state to SharedPreferences
+                3. Update the progress bar
+                Like your toggleDone() function in React
+                backgroundTint=#1E2A45 is a slightly lighter navy than the card
+            -->
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

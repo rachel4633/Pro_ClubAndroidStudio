@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+<!--    this files defines the 4 tabs at the bottom of the screen same as defining
+         your navigation routes in react router each item = one tab button in the
+         un the bottom navigation bar-->
+
+    <item
+        android:id="@+id/nav_schedule"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Schedule"/>
+
+<!--    we use this id in main activity .kt to know which tab was tapped
+        the icon is from  built in android icons for now  -->
+
+    <item
+        android:id="@+id/nav_weekly"
+        android:icon="@android:drawable/ic_menu_month"
+        android:title="Weekly"/>
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Profile"/>
+
+    <item
+        android:id="@+id/nav_about"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="About"/>
+
+</menu>
