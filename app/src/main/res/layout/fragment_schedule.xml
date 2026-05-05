@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="#0A0F1E">
 
+    <!-- SCROLLABLE CONTENT -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,14 +19,14 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingTop="32dp"
-            android:paddingBottom="32dp">
+            android:paddingBottom="80dp"> <!-- extra space for FAB -->
 
             <!-- TITLE -->
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Today's Schedule"
+                android:text="My Tasks"
                 android:textColor="#FFFFFF"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -37,7 +38,7 @@
                 android:id="@+id/tvDateTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Monday, 5 May 2026 · 07:30 AM"
+                android:text="Monday · 07:30 AM"
                 android:textColor="#8899BB"
                 android:textSize="13sp"
                 android:gravity="center"
@@ -50,17 +51,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="16dp"
-                android:text="🔕 Enable Notifications"
+                android:text="🔔 Notifications"
                 android:textColor="#8899BB"
                 android:textSize="13sp"
                 android:backgroundTint="#111827"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
-            <!-- PROGRESS LABELS ROW -->
+            <!-- PROGRESS LABELS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -73,7 +70,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="0 of 15 blocks done"
+                    android:text="0 tasks completed"
                     android:textColor="#8899BB"
                     android:textSize="12sp"/>
 
@@ -87,14 +84,13 @@
 
             </LinearLayout>
 
-            <!-- PROGRESS BAR TRACK -->
+            <!-- PROGRESS BAR -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="8dp"
                 android:background="#1E2A45"
-                android:layout_marginBottom="32dp">
+                android:layout_marginBottom="24dp">
 
-                <!-- GREEN FILL BAR -->
                 <View
                     android:id="@+id/progressBar"
                     android:layout_width="0dp"
@@ -103,7 +99,7 @@
 
             </FrameLayout>
 
-            <!-- SCHEDULE LIST -->
+            <!-- TASK LIST -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
@@ -113,4 +109,17 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- FLOATING ADD BUTTON -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddTask"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Add Task"
+        android:src="@android:drawable/ic_input_add"
+        android:tint="#FFFFFF"
+        app:backgroundTint="#3B82F6"
+        app:layout_anchorGravity="bottom|end"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

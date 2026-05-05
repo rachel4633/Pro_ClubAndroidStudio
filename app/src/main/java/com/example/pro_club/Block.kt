@@ -1,6 +1,8 @@
 package com.example.pro_club
 
 data class Block(
+    val id: Int = 0,
+
     val time: String,
     // "6:00 - 6:30" - the time shown on the card
     //string means it holds text -same as string inTypescript
@@ -32,8 +34,9 @@ data class Block(
     //isCurrentBlock() in MainActivity to check if this block
     // is happening RIGHT NOW - same logic as your React version
 
-    val motivation: String
+    val motivation: String,
     //"Rise and shine! A great day starts with gratitude  🙏"
     //The italic quote  shown at the bottom of each card
+    val section: String = "",
 )
 

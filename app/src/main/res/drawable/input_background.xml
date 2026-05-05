@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp"/>
+    <solid android:color="#111827"/>
+    <stroke
+        android:width="1dp"
+        android:color="#1E2A45"/>
+</shape>
+    <!--
+        This gives each input field:
+        - Rounded corners (8dp) — like border-radius: 8px in CSS
+        - Dark navy fill (#111827) — same as your card color
+        - A subtle border (#1E2A45) — like border border-gray-700 in Tailwind
+    -->

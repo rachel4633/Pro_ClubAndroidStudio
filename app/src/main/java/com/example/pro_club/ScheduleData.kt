@@ -186,7 +186,7 @@ object ScheduleData {
 
                 Block(
                     time = "21:30 - 22:00",
-                    title = "plan tommorrow & journal",
+                    title = "plan tommorow & journal",
                     desc = "Write tomorrows's plan and reflect on today",
                     type = "routine",
                     notifyAt = "21:30",

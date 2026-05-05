@@ -14,7 +14,7 @@ import java.util.Calendar
 class BlockAdapter( //this class takes 3 params like props in React
     private val context: Context, //key to resources from main activity
     //we need context to access shared preferences and inflate layouts
-    private val sections: List<Section>,
+    private var sections: List<Section>,
     //sections is our full schedule from schedule data.sections
     //this is the data that adapter will loop through
     private val onProgressUpdate: () -> Unit
@@ -258,5 +258,10 @@ class BlockAdapter( //this class takes 3 params like props in React
             }
         }
         return Pair(done, total)
+    }
+
+    fun updateSections(newSections: List<Section>) {
+        sections = newSections
+        notifyDataSetChanged()
     }
 }

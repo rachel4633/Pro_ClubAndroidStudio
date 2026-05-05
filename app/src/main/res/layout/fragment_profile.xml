@@ -90,29 +90,33 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_height="100dp"
+                android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="GitHub"
-                    android:textColor="#8899BB"
-                    android:textSize="14sp"/>
-
-                <TextView
+                    android:layout_width="match_parent"
                     android:id="@+id/tvGithub"
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="---"
+                    android:text="GitHub Activity"
                     android:textColor="#FFFFFF"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <WebView
+                    android:id="@+id/webViewGithub"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+                <!--
+                    WebView renders web content inside Android
+                    Same as an iframe in HTML
+                    We use it to show the GitHub contribution chart
+                    from ghchart.rshah.org — same as your React version
+                -->
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
         <!-- LOGOUT BUTTON -->
         <Button
             android:id="@+id/btnLogout"
