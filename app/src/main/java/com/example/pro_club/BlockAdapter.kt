@@ -1,6 +1,7 @@
 package com.example.pro_club
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -17,7 +18,8 @@ class BlockAdapter( //this class takes 3 params like props in React
     private var sections: List<Section>,
     //sections is our full schedule from schedule data.sections
     //this is the data that adapter will loop through
-    private val onProgressUpdate: () -> Unit
+    private val onProgressUpdate: () -> Unit,
+    private val onDataChanged: () -> Unit
     //onProgressUpdate is a callback function from main activity
     //when a block is marked done we call this to update the progress bar
     //() -> Unit means takes no inputs, returns nothing
@@ -43,7 +45,7 @@ class BlockAdapter( //this class takes 3 params like props in React
         //when recycler view see type 1 it uses item_block.xml
         //draws a block card(wake up & pray Deep coding)
     }
-    private val flatList: List<Any> = buildFlatList()
+    private var flatList: List<Any> = buildFlatList()
     //recyclerview only understands flatlist one item per row
     //so we flatten the data into one list b4 giving it ro recyclerview
     //list any means the list can any types - section or blocks
@@ -87,10 +89,52 @@ class BlockAdapter( //this class takes 3 params like props in React
     }
 
     inner class BlockViewHolder(
+
         private val binding: ItemBlockBinding
         //binding gives us access to all views in the item_block
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private fun deleteBlock(blockId: String) {
+            val retrofit = retrofit2.Retrofit.Builder()
+                .baseUrl("https://godchild.alwaysdata.net/")
+                .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+                .build()
+
+            val service = retrofit.create(ApiService::class.java)
+
+            service.deleteBlock(blockId).enqueue(object : retrofit2.Callback<okhttp3.ResponseBody> {
+                override fun onResponse(
+                    call: retrofit2.Call<okhttp3.ResponseBody>,
+                    response: retrofit2.Response<okhttp3.ResponseBody>
+                ) {
+                    if (response.isSuccessful) {
+                        // Block deleted — tell ScheduleFragment to reload
+                        // We use a broadcast to communicate between
+                        // BlockAdapter and ScheduleFragment
+                        // Same as dispatching a Redux action in React
+                        onDataChanged()
+                        // Call the callback directly instead of broadcast
+                        // More reliable than BroadcastReceiver for same-app communication
+                        android.widget.Toast.makeText(
+                            context,
+                            "Block deleted successfully",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(
+                    call: retrofit2.Call<okhttp3.ResponseBody>,
+                    t: Throwable
+                ) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Failed to delete: " + t.message,
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+        }
         fun bind(block: Block) {
             // Fill in text fields from block data
             binding.tvTime.text = block.time//7;30 - 11;00
@@ -98,7 +142,23 @@ class BlockAdapter( //this class takes 3 params like props in React
             binding.tvDesc.text = block.desc// most important block
             binding.tvMotivation.text = block.motivation//"lock in and build"
             binding.tvTypeBadge.text = block.type.uppercase()//converts coding to CODING
-
+            binding.btnEdit.setOnClickListener {
+                // Pass all block data to EditBlockActivity via Intent extras
+                // Same as navigate("/edit", { state: { block } }) in React Router
+                val intent = Intent(context, EditBlockActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.putExtra("block_id", block.id.toString())
+                intent.putExtra("title", block.title)
+                intent.putExtra("description", block.desc)
+                intent.putExtra("task_type", block.type)
+                intent.putExtra("start_hour", block.startHour.toString())
+                intent.putExtra("start_minute", block.startMinute.toString())
+                intent.putExtra("end_hour", block.endHour.toString())
+                intent.putExtra("end_minute", block.endMinute.toString())
+                intent.putExtra("motivation", block.motivation)
+                intent.putExtra("section", block.section)
+                context.startActivity(intent)
+            }
             // Get the color for this block type
             // when() is Kotlin's switch/case
             // Same as your typeStyles object in React
@@ -130,6 +190,22 @@ class BlockAdapter( //this class takes 3 params like props in React
             binding.root.setCardBackgroundColor(
                 Color.parseColor(if (isNow) "#1a2535" else "#111827")
             )
+            // DELETE BUTTON CLICK
+            binding.btnDelete.setOnClickListener {
+                // Show confirmation dialog before deleting
+                // Same as window.confirm() in JavaScript
+                // We never delete without asking first!
+                android.app.AlertDialog.Builder(context)
+                    .setTitle("Delete Block")
+                    .setMessage("Are you sure you want to delete '${block.title}'?")
+                    .setPositiveButton("Delete") { _, _ ->
+                        // User confirmed — delete from API
+                        deleteBlock(block.id.toString())
+                    }
+                    .setNegativeButton("Cancel", null)
+                    // null means do nothing when Cancel is tapped
+                    .show()
+            }
 
             // Check if this block is already marked done
             // prefs is like localStorage in React
@@ -262,6 +338,9 @@ class BlockAdapter( //this class takes 3 params like props in React
 
     fun updateSections(newSections: List<Section>) {
         sections = newSections
+        //Rebuild the flat list with the new sections
+        //same as rebuilding the array after update in react
+        flatList = buildFlatList()
         notifyDataSetChanged()
     }
 }

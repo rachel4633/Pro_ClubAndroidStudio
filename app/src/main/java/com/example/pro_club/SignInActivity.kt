@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pro_club.databinding.ActivitySignInBinding
 import okhttp3.ResponseBody
@@ -45,6 +46,9 @@ class SignInActivity : AppCompatActivity() {
             goToMain()
             return
         }
+        window.setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        )
 
         // If user_id is invalid clear the session and force re-login
         if (savedUsername != null && (savedUserId == null || savedUserId == "null" || savedUserId == "0")) {

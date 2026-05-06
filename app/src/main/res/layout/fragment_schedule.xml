@@ -119,7 +119,7 @@
         android:contentDescription="Add Task"
         android:src="@android:drawable/ic_input_add"
         android:tint="#FFFFFF"
-        app:backgroundTint="#3B82F6"
-        app:layout_anchorGravity="bottom|end"/>
+        android:layout_gravity="bottom|end"
+        app:backgroundTint="#3B82F6" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

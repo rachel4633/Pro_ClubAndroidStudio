@@ -12,31 +12,29 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- TITLE -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add New Block"
+            android:text="Edit Profile"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="24dp"/>
 
-        <!-- TITLE INPUT -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Title"
+            android:text="Username"
             android:textColor="#8899BB"
             android:textSize="13sp"
             android:layout_marginBottom="6dp"/>
 
         <EditText
-            android:id="@+id/etTitle"
+            android:id="@+id/etUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="e.g. Deep coding session"
+            android:hint="Enter username"
             android:textColorHint="#4B6A9B"
             android:textColor="#FFFFFF"
             android:inputType="text"
@@ -47,24 +45,22 @@
             android:paddingBottom="14dp"
             android:layout_marginBottom="16dp"/>
 
-        <!-- DESCRIPTION INPUT -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Description"
+            android:text="Email"
             android:textColor="#8899BB"
             android:textSize="13sp"
             android:layout_marginBottom="6dp"/>
 
         <EditText
-            android:id="@+id/etDescription"
+            android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="What will you do during this block?"
+            android:hint="Enter email"
             android:textColorHint="#4B6A9B"
             android:textColor="#FFFFFF"
-            android:inputType="textMultiLine"
-            android:lines="3"
+            android:inputType="textEmailAddress"
             android:background="@drawable/input_background"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -72,163 +68,42 @@
             android:paddingBottom="14dp"
             android:layout_marginBottom="16dp"/>
 
-        <!-- SECTION DROPDOWN -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Section"
-            android:textColor="#8899BB"
-            android:textSize="13sp"
-            android:layout_marginBottom="6dp"/>
-
-        <Spinner
-            android:id="@+id/spinnerSection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/input_background"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
-            android:layout_marginBottom="16dp"/>
-        <!--
-            Spinner is Android's dropdown selector
-            Same as <select> in HTML
-            We fill it with Morning, Classes, Afternoon, Evening in Kotlin
-        -->
-
-        <!-- TYPE DROPDOWN -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Block Type"
-            android:textColor="#8899BB"
-            android:textSize="13sp"
-            android:layout_marginBottom="6dp"/>
-
-        <Spinner
-            android:id="@+id/spinnerType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/input_background"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- START TIME -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Start Time"
-            android:textColor="#8899BB"
-            android:textSize="13sp"
-            android:layout_marginBottom="6dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp"
-            android:weightSum="2">
-
-            <EditText
-                android:id="@+id/etStartHour"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Hour (0-23)"
-                android:textColorHint="#4B6A9B"
-                android:textColor="#FFFFFF"
-                android:inputType="number"
-                android:background="@drawable/input_background"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
-                android:layout_marginEnd="8dp"/>
-
-            <EditText
-                android:id="@+id/etStartMinute"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Minute (0-59)"
-                android:textColorHint="#4B6A9B"
-                android:textColor="#FFFFFF"
-                android:inputType="number"
-                android:background="@drawable/input_background"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"/>
-
-        </LinearLayout>
-
-        <!-- END TIME -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="End Time"
-            android:textColor="#8899BB"
-            android:textSize="13sp"
-            android:layout_marginBottom="6dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp"
-            android:weightSum="2">
-
-            <EditText
-                android:id="@+id/etEndHour"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Hour (0-23)"
-                android:textColorHint="#4B6A9B"
-                android:textColor="#FFFFFF"
-                android:inputType="number"
-                android:background="@drawable/input_background"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
-                android:layout_marginEnd="8dp"/>
-
-            <EditText
-                android:id="@+id/etEndMinute"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Minute (0-59)"
-                android:textColorHint="#4B6A9B"
-                android:textColor="#FFFFFF"
-                android:inputType="number"
-                android:background="@drawable/input_background"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"/>
-
-        </LinearLayout>
-
-        <!-- MOTIVATION INPUT -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Motivation Quote"
+            android:text="Phone"
             android:textColor="#8899BB"
             android:textSize="13sp"
             android:layout_marginBottom="6dp"/>
 
         <EditText
-            android:id="@+id/etMotivation"
+            android:id="@+id/etPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="e.g. Lock in and build something great!"
+            android:hint="Enter phone number"
+            android:textColorHint="#4B6A9B"
+            android:textColor="#FFFFFF"
+            android:inputType="phone"
+            android:background="@drawable/input_background"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GitHub Username"
+            android:textColor="#8899BB"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp"/>
+
+        <EditText
+            android:id="@+id/etGithub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter GitHub username"
             android:textColorHint="#4B6A9B"
             android:textColor="#FFFFFF"
             android:inputType="text"
@@ -239,18 +114,54 @@
             android:paddingBottom="14dp"
             android:layout_marginBottom="24dp"/>
 
-        <!-- ERROR MESSAGE -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#1E2A45"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Confirm with your password"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enter your current password to save changes"
+            android:textColor="#8899BB"
+            android:textSize="12sp"
+            android:layout_marginBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Current password"
+            android:textColorHint="#4B6A9B"
+            android:textColor="#FFFFFF"
+            android:inputType="textPassword"
+            android:background="@drawable/input_background"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:layout_marginBottom="24dp"/>
+
         <TextView
             android:id="@+id/tvError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
             android:textColor="#FF4444"
             android:textSize="13sp"
+            android:gravity="center"
             android:layout_marginBottom="16dp"
             android:visibility="gone"/>
 
-        <!-- LOADING -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
@@ -258,17 +169,15 @@
             android:layout_gravity="center"
             android:visibility="gone"/>
 
-        <!-- ADD BUTTON -->
         <Button
-            android:id="@+id/btnAddBlock"
+            android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add Block"
+            android:text="Save Changes"
             android:textColor="#FFFFFF"
             android:backgroundTint="#2563EB"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="12dp"/>
 
-        <!-- CANCEL BUTTON -->
         <Button
             android:id="@+id/btnCancel"
             android:layout_width="match_parent"

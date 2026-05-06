@@ -171,6 +171,26 @@
                 #4B6A9B is a dimmer navy blue — like your text-muted in React
                 textStyle=italic is like font-italic in CSS
             -->
+            <Button
+                android:id="@+id/btnEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✏️ Edit"
+                android:textColor="#8899BB"
+                android:textSize="13sp"
+                android:backgroundTint="#1E2A45"
+                android:layout_marginBottom="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🗑️ Delete"
+                android:textColor="#FF4444"
+                android:backgroundTint="#1E2A45"
+                android:layout_marginBottom="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
             <!-- MARK DONE BUTTON -->
             <Button

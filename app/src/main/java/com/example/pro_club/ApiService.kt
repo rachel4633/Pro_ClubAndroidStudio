@@ -63,4 +63,15 @@ interface ApiService {
     fun deleteBlock(
         @Field("block_id") blockId: String
     ): Call<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/update_profile")
+    fun updateProfile(
+        @Field("user_id") userId: String,
+        @Field("username") username: String,
+        @Field("email") email: String,
+        @Field("phone") phone: String,
+        @Field("github_username") github: String,
+        @Field("current_password") password: String
+    ): Call<ResponseBody>
 }

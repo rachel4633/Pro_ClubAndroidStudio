@@ -3,6 +3,7 @@ package com.example.pro_club
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pro_club.databinding.ActivityAddBlockBinding
@@ -19,6 +20,7 @@ class AddBlockActivity : AppCompatActivity() {
     // Same as your Addproducts.jsx in the SokoGarden React app
     // User fills in the form, hits Add Block, data goes to the API
 
+
     private lateinit var binding: ActivityAddBlockBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +30,12 @@ class AddBlockActivity : AppCompatActivity() {
 
         setupSpinners()
         setupButtons()
+
+        window.setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        )
     }
+
 
     private fun setupSpinners() {
         // Spinner is Android's dropdown — same as <select> in HTML
@@ -131,6 +138,13 @@ class AddBlockActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("user_session", Context.MODE_PRIVATE)
         val userId = prefs.getString("user_id", "1") ?: "1"
         // Same as localStorage.getItem("user_id") in React
+
+        // Temporary debug toast
+        android.widget.Toast.makeText(
+            this,
+            "Adding for user_id: $userId",
+            android.widget.Toast.LENGTH_LONG
+        ).show()
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://godchild.alwaysdata.net/")
