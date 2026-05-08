@@ -23,7 +23,7 @@ object NotificationScheduler {
 
         // Check if notifications are enabled in settings
         val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val notifEnabled = prefs.getBoolean("notifications_enabled", false)
+        val notifEnabled = prefs.getBoolean("notifications_enabled", true)
 
         if (!notifEnabled) return
         // If notifications are off — don't schedule anything
@@ -35,7 +35,7 @@ object NotificationScheduler {
     }
 
     private fun scheduleBlockNotification(context: Context, block: Block) {
-        //add permission check before anything else
+        // ✅ CHECK POST_NOTIFICATIONS PERMISSION FIRST
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (context.checkSelfPermission(
                     android.Manifest.permission.POST_NOTIFICATIONS
@@ -44,6 +44,7 @@ object NotificationScheduler {
                 return  // Exit silently — don't crash
             }
         }
+
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE)
                 as AlarmManager
         // AlarmManager is Android's system scheduler
@@ -95,6 +96,14 @@ object NotificationScheduler {
                     )
                     // setExactAndAllowWhileIdle fires even in battery saver mode
                     // RTC_WAKEUP = use real clock time and wake device if sleeping
+                } else {
+                    // ✅ FALLBACK: Use inexact alarm if exact alarms not allowed
+                    alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.timeInMillis,
+                        pendingIntent
+                    )
+                    android.util.Log.w("NOTIF", "canScheduleExactAlarms=false, using fallback")
                 }
             } else {
                 alarmManager.setExactAndAllowWhileIdle(
@@ -103,12 +112,23 @@ object NotificationScheduler {
                     pendingIntent
                 )
             }
+        } catch (e: SecurityException) {
+            // ✅ BETTER ERROR HANDLING
+            android.util.Log.e("NOTIF", "SecurityException scheduling ${block.title}: ${e.message}", e)
+            // Try fallback
+            try {
+                alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.timeInMillis,
+                    pendingIntent
+                )
+            } catch (fallbackE: Exception) {
+                android.util.Log.e("NOTIF", "Fallback also failed: ${fallbackE.message}", fallbackE)
+            }
         } catch (e: Exception) {
-            android.util.Log.e("NOTIF", "Failed to schedule: ${block.title}")
-        }
+            android.util.Log.e("NOTIF", "Failed to schedule ${block.title}: ${e.message}", e)
         }
     }
-
 
     private fun cancelAllNotifications(context: Context, blocks: List<Block>) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE)
