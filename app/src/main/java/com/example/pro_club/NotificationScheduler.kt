@@ -103,12 +103,22 @@ object NotificationScheduler {
                     pendingIntent
                 )
             }
-        } catch (e: Exception) {
-            android.util.Log.e("NOTIF", "Failed to schedule: ${block.title}")
-        }
+        } catch (e: SecurityException) {
+            android.util.Log.e("NOTIF", "Failed to schedule: ${block.title}: ${e.message}", e)
+            // Try fallback
+            try {
+                alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.timeInMillis,
+                    pendingIntent
+                )
+            } catch (fallbackE: Exception){
+                android.util.Log.e("NOTIF", "Fallback also failed: ${fallbackE.message}", fallbackE)
+            }
+        }catch (e: Exception){
+            android.util.Log.e("NOTIF", "Failed to schedule ${block.title}: ${e.message}", e)
         }
     }
-
 
     private fun cancelAllNotifications(context: Context, blocks: List<Block>) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE)

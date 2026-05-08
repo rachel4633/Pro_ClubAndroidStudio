@@ -279,6 +279,7 @@
             android:text="Cancel"
             android:textColor="#8899BB"
             android:backgroundTint="#1E2A45"
+            android:layout_marginBottom="32dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
     </LinearLayout>
