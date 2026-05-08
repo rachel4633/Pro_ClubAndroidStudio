@@ -212,6 +212,12 @@
                 Like your toggleDone() function in React
                 backgroundTint=#1E2A45 is a slightly lighter navy than the card
             -->
+            <ImageView
+                android:id="@+id/ivPin"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/star_big_off"
+                android:layout_alignParentEnd="true"/>
 
         </LinearLayout>
     </LinearLayout>

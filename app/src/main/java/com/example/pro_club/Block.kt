@@ -18,7 +18,7 @@ data class Block(
     //This controls which color the left border and badge will be
     //same as your type field in the React interface Block
 
-    val notifyAt: String,
+    val notifyAt: String = "",
     //"6:00" - the time to fire the notification alarm
     //We pass this to AlarmManager later in MainActivity
 
@@ -38,5 +38,6 @@ data class Block(
     //"Rise and shine! A great day starts with gratitude  🙏"
     //The italic quote  shown at the bottom of each card
     val section: String = "",
+    var isPinned: Boolean = false
 )
 

@@ -31,30 +31,13 @@ class AddBlockActivity : AppCompatActivity() {
         setupSpinners()
         setupButtons()
 
-        window.setSoftInputMode(
-            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
-        )
     }
 
 
     private fun setupSpinners() {
-        // Spinner is Android's dropdown — same as <select> in HTML
-        // ArrayAdapter connects a list of strings to the Spinner
-        // Same as mapping options in a React select component
-
-        // Section dropdown options
-        val sections = listOf("Morning", "Classes", "Afternoon", "Evening", "General")
-        val sectionAdapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            sections
-        )
-        // android.R.layout.simple_spinner_dropdown_item is a
-        // built-in Android layout for dropdown items
-        binding.spinnerSection.adapter = sectionAdapter
 
         // Block type dropdown options
-        val types = listOf("routine", "workout", "coding", "class", "break", "football", "sleep")
+        val types = listOf("routine", "workout", "study", "class", "break","sleep","teach","meeting","Go Somewhere","e.t.c")
         val typeAdapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
@@ -80,8 +63,16 @@ class AddBlockActivity : AppCompatActivity() {
             val startMinute = binding.etStartMinute.text.toString().trim()
             val endHour = binding.etEndHour.text.toString().trim()
             val endMinute = binding.etEndMinute.text.toString().trim()
-            val section = binding.spinnerSection.selectedItem.toString()
-            val taskType = binding.spinnerType.selectedItem.toString()
+
+
+            // Auto assign section based on time
+            // User doesn't need to manually pick — less confusion
+            val taskType = (binding.etTaskType.text.toString()
+                .trim()
+                .lowercase()
+                .ifEmpty { "routine" })
+            // lowercase() so "Coding" and "coding" both work the same
+            // Same as .toLowerCase() in JavaScript
             // .selectedItem.toString() gets the currently selected
             // dropdown value — same as e.target.value in React onChange
 
@@ -116,10 +107,29 @@ class AddBlockActivity : AppCompatActivity() {
                 showError("Minutes must be between 0 and 59")
                 return@setOnClickListener
             }
+            val section = getSectionFromTime(startH)
 
             showLoading(true)
             addBlock(title, description, taskType, startHour,
                 startMinute, endHour, endMinute, motivation, section)
+        }
+    }
+
+    private fun getSectionFromTime(startHour: Int): String {
+        // Automatically determine section based on start hour
+        // So user doesn't have to manually pick section
+        // Same as a computed property in React
+        return when {
+            startHour in 5..11 -> "Morning"
+            // 5am to 11am = Morning
+            startHour in 11..13 -> "Classes"
+            // 11am to 1pm = Classes
+            startHour in 13..17 -> "Afternoon"
+            // 1pm to 5pm = Afternoon
+            startHour in 17..21 -> "Evening"
+            // 5pm to 9pm = Evening
+            else -> "General"
+            // Everything else = General
         }
     }
 
@@ -142,7 +152,7 @@ class AddBlockActivity : AppCompatActivity() {
         // Temporary debug toast
         android.widget.Toast.makeText(
             this,
-            "Adding for user_id: $userId",
+            "Adding for user: $userId",
             android.widget.Toast.LENGTH_LONG
         ).show()
 

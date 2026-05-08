@@ -233,6 +233,57 @@ class BlockAdapter( //this class takes 3 params like props in React
                 // Tell MainActivity to refresh the progress bar
                 onProgressUpdate()
             }
+            // ⭐ PIN LOGIC
+            val pinPrefs = context.getSharedPreferences("pins", Context.MODE_PRIVATE)
+            block.isPinned = pinPrefs.getBoolean("pin_${block.id}", false)
+            // Load saved pin state from SharedPreferences
+            // Same as reading from localStorage in React
+
+            // Show correct star icon based on pin state
+            binding.ivPin.setImageResource(
+                if (block.isPinned)
+                    android.R.drawable.star_big_on
+                // Filled star = pinned
+                else
+                    android.R.drawable.star_big_off
+                // Empty star = not pinned
+            )
+
+// Change star color too
+            binding.ivPin.setColorFilter(
+                if (block.isPinned)
+                    android.graphics.Color.parseColor("#F59E0B")
+                // Gold/amber color when pinned
+                else
+                    android.graphics.Color.parseColor("#8899BB")
+                // Muted color when not pinned
+            )
+
+            // PIN CLICK HANDLER
+            binding.ivPin.setOnClickListener {
+                // Toggle pin state
+                val newPinState = !block.isPinned
+                block.isPinned = newPinState
+
+                // Save to SharedPreferences
+                pinPrefs.edit().putBoolean("pin_${block.id}", newPinState).apply()
+
+                // Update icon immediately
+                binding.ivPin.setImageResource(
+                    if (newPinState) android.R.drawable.star_big_on
+                    else android.R.drawable.star_big_off
+                )
+                binding.ivPin.setColorFilter(
+                    if (newPinState)
+                        android.graphics.Color.parseColor("#F59E0B")
+                    else
+                        android.graphics.Color.parseColor("#8899BB")
+                )
+
+                // Tell ScheduleFragment to reload so pinned blocks
+                // float to the top
+                onDataChanged()
+            }
         }
 
         private fun updateButtonState(binding: ItemBlockBinding, isDone: Boolean) {
@@ -286,6 +337,7 @@ class BlockAdapter( //this class takes 3 params like props in React
             // back to the specific type — like (Section) in Java
             // or "as Section" in TypeScript
         }
+
     }
 
     // Is this block happening right now?
@@ -318,6 +370,21 @@ class BlockAdapter( //this class takes 3 params like props in React
         //return current mins >= start mins && currentMins < endMins
     }
 
+    private fun sortBlocks() {
+        sections.forEach { section ->
+
+            val sorted = section.blocks.sortedWith(
+                compareByDescending<Block> { it.isPinned }
+                    .thenBy { it.startHour }
+                    .thenBy { it.startMinute }
+            )
+
+            section.blocks.clear()        // ✅ remove old
+            section.blocks.addAll(sorted) // ✅ add sorted
+        }
+
+        flatList = buildFlatList()
+    }
     // Calculate progress for the progress bar in MainActivity
     // Returns a Pair — two numbers bundled together
     // First = how many blocks are done
@@ -338,6 +405,7 @@ class BlockAdapter( //this class takes 3 params like props in React
 
     fun updateSections(newSections: List<Section>) {
         sections = newSections
+        sortBlocks()
         //Rebuild the flat list with the new sections
         //same as rebuilding the array after update in react
         flatList = buildFlatList()

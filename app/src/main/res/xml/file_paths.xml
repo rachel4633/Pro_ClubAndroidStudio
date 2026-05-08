@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-files-path
+        name="my_images"
+        path="Pictures/"/>
+    <!--
+        This tells FileProvider where our camera photos will be saved
+        FileProvider is Android's secure way of sharing files between apps
+        Same as creating a secure URL for a file in a web app
+    -->
+</paths>

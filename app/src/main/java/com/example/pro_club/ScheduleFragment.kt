@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -49,6 +50,16 @@ class ScheduleFragment : Fragment() {
             handler.postDelayed(this, 60000)
         }
     }
+    private fun updateTitle() {
+        val prefs = requireContext()
+            .getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val username = prefs.getString("username", "Your") ?: "Your"
+
+        // Personalized title
+        // Same as template literals in JavaScript:
+        // `${username}'s Tasks`
+        binding.tvTitle.text = "${username}'s Tasks"
+    }
 
     // ─── 1. CREATE THE LAYOUT ───────────────────────────────
     override fun onCreateView(
@@ -81,6 +92,7 @@ class ScheduleFragment : Fragment() {
         binding.recyclerView.adapter = adapter
 
         updateClock()
+        updateTitle()
         setupNotificationButton()
         setupDeleteReceiver()
         handler.post(clockRunnable)
@@ -92,6 +104,7 @@ class ScheduleFragment : Fragment() {
         }
 
         loadBlocksFromApi()
+        requestNotificationPermission()
     }
 
     // ─── 3. REFRESH WHEN COMING BACK TO THIS SCREEN ─────────
@@ -121,7 +134,12 @@ class ScheduleFragment : Fragment() {
 
         val prefs = requireContext()
             .getSharedPreferences("user_session", Context.MODE_PRIVATE)
-        val userId = prefs.getString("user_id", "0") ?: "0"
+        val userId = prefs.getString("user_id", "") ?: ""
+
+        if (userId.isEmpty() || userId == "0") {
+            android.util.Log.d("SCHEDULE", "No valid user_id — skipping API call")
+            return
+        }
         android.util.Log.d("SCHEDULE", "Loading blocks for user_id: $userId")
 
         val retrofit = Retrofit.Builder()
@@ -152,9 +170,23 @@ class ScheduleFragment : Fragment() {
                         // Fall back to hardcoded schedule
                         // So new users still see something on screen
                         adapter.updateSections(emptyList())
+                        binding.recyclerView.visibility = View.GONE
+                        binding.recyclerView.visibility = View.VISIBLE
                     } else {
+                        //blocks found show them
+                        binding.tvEmptyState.visibility = View.GONE
+                        binding.recyclerView.visibility = View.VISIBLE
                         val sections = groupIntoSections(blocks)
                         adapter.updateSections(sections)
+
+                        // Schedule notifications for all blocks
+                        // Gets all blocks as a flat list from sections
+                        val allBlocks = sections.flatMap { it.blocks }
+                        // flatMap flattens [[block1, block2], [block3]] into
+                        // [block1, block2, block3] — same as Array.flat() in JavaScript
+                        NotificationScheduler.scheduleNotificationsForBlocks(
+                            requireContext(),
+                            allBlocks)
                     }
                     updateProgressBar()
                 }
@@ -168,12 +200,17 @@ class ScheduleFragment : Fragment() {
                 updateProgressBar()
             }
         })
+
+
     }
+
 
     // ─── PARSE JSON BLOCKS INTO BLOCK OBJECTS ───────────────
     private fun parseBlocks(blocksArray: JSONArray): List<Block> {
         val blocks = mutableListOf<Block>()
 
+        val pinPrefs = requireContext()
+            .getSharedPreferences("pin_prefs", Context.MODE_PRIVATE)
         for (i in 0 until blocksArray.length()) {
             val obj = blocksArray.getJSONObject(i)
 
@@ -183,10 +220,8 @@ class ScheduleFragment : Fragment() {
             val endMinute = obj.optInt("end_minute", 0)
 
             // Build display time string e.g. "7:30 – 11:00"
-            val time = String.format(
-                "%d:%02d – %d:%02d",
-                startHour, startMinute, endHour, endMinute
-            )
+
+            val time = formatTimeRange(startHour, startMinute, endHour, endMinute)
 
             blocks.add(Block(
                 id = obj.optInt("id", 0),
@@ -200,10 +235,29 @@ class ScheduleFragment : Fragment() {
                 endHour = endHour,
                 endMinute = endMinute,
                 motivation = obj.optString("motivation", ""),
-                section = obj.optString("section", "General")
+                section = obj.optString("section", "General"),
+                isPinned = pinPrefs.getBoolean("pin_${obj.optInt("id", 0)}", false)
+                // Load saved pin state for each block
+                // Same as reading from localStorage in React
             ))
         }
         return blocks
+    }
+
+    private fun formatTimeRange(
+        startHour: Int, startMinute: Int,
+        endHour: Int, endMinute: Int
+    ): String {
+        fun toAmPm(hour: Int, minute: Int): String {
+            val period = if (hour < 12) "AM" else "PM"
+            val displayHour = when {
+                hour == 0 -> 12   // midnight = 12 AM
+                hour > 12 -> hour - 12  // 13 → 1, 21 → 9
+                else -> hour      // 1-12 stays same
+            }
+            return String.format("%d:%02d %s", displayHour, minute, period)
+        }
+        return "${toAmPm(startHour, startMinute)} - ${toAmPm(endHour, endMinute)}"
     }
 
     // ─── GROUP BLOCKS INTO SECTIONS ─────────────────────────
@@ -214,15 +268,34 @@ class ScheduleFragment : Fragment() {
             "Morning", "Classes", "Afternoon", "Evening", "General"
         )
 
-        val grouped = blocks.groupBy { it.section }
+        // Separate pinned and unpinned blocks first
+        // filter{} is same as .filter() in JavaScript
+        val pinnedBlocks = blocks.filter { it.isPinned }
+        val unpinnedBlocks = blocks.filter { !it.isPinned }
+        //grouped morning, evening
+        val grouped = unpinnedBlocks.groupBy { it.section }
+        //grouped morning, evening
         val sections = mutableListOf<Section>()
+            //start with empty list we add sections one by one
+
+        // ── ADD PINNED SECTION AT THE TOP ──
+        if (pinnedBlocks.isNotEmpty()) {
+            // Only add pinned section if there are pinned blocks
+            sections.add(Section(
+                section = "⭐ Pinned",
+                timeRange = "",
+                blocks = pinnedBlocks.sortedWith(
+                    compareBy({ it.startHour }, { it.startMinute })
+                ).toMutableList()
+            ))
+        }
 
         for (sectionName in sectionOrder) {
             val sectionBlocks = grouped[sectionName]
             if (!sectionBlocks.isNullOrEmpty()) {
                 val sorted = sectionBlocks.sortedWith(
                     compareBy({ it.startHour }, { it.startMinute })
-                )
+                ).toMutableList()
                 val first = sorted.first()
                 val last = sorted.last()
                 val timeRange = String.format(
@@ -233,20 +306,21 @@ class ScheduleFragment : Fragment() {
                 sections.add(Section(
                     section = sectionName,
                     timeRange = timeRange,
-                    blocks = sorted
+                    blocks = sorted.toMutableList()
                 ))
             }
         }
         return sections
     }
 
-    // ─── UPDATE CLOCK DISPLAY ───────────────────────────────
+    // ─── UPDATE CLOCK DISPLAY ────────-─────────────────────
     private fun updateClock() {
         val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
         val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault())
         val now = Date()
         binding.tvDateTime.text = dateFormat.format(now) + " · " + timeFormat.format(now)
     }
+
 
     // ─── UPDATE PROGRESS BAR ────────────────────────────────
     private fun updateProgressBar() {
@@ -272,6 +346,10 @@ class ScheduleFragment : Fragment() {
         // Check saved notification state from SharedPreferences
         val prefs = requireContext()
             .getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
+        if (!prefs.contains("notifications_enabled")) {
+            prefs.edit().putBoolean("notifications_enabled", true).apply()
+        }
         val notifEnabled = prefs.getBoolean("notifications_enabled", false)
         updateNotificationButton(notifEnabled)
 
@@ -281,6 +359,26 @@ class ScheduleFragment : Fragment() {
             val newState = !currentState
             prefs.edit().putBoolean("notifications_enabled", newState).apply()
             updateNotificationButton(newState)
+
+            if (newState) {
+                // Just turned ON — request permission and schedule
+                requestNotificationPermission()
+                // Reload blocks to schedule notifications immediately
+                loadBlocksFromApi()
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Notifications enabled! You'll be reminded at each block's start time.",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            } else {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Notifications disabled",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+
+
         }
     }
 
@@ -299,6 +397,23 @@ class ScheduleFragment : Fragment() {
             // Muted — notifications are off
         }
         binding.btnNotifications.isEnabled = true
+    }
+    private fun requestNotificationPermission() {
+        // Android 13+ requires explicit permission for notifications
+        // Same as requesting permission in React Native
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (requireContext().checkSelfPermission(
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1001
+                    // 1001 is the request code — used to identify
+                    // which permission request this is
+                )
+            }
+        }
     }
 
     // ─── DELETE RECEIVER ────────────────────────────────────
@@ -336,5 +451,23 @@ class ScheduleFragment : Fragment() {
             }
         }
         _binding = null
+
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001 &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            // ✅ Permission just granted — make sure toggle is on and schedule
+            val prefs = requireContext()
+                .getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putBoolean("notifications_enabled", true).apply()
+            updateNotificationButton(true)
+            loadBlocksFromApi()
+        }
     }
 }

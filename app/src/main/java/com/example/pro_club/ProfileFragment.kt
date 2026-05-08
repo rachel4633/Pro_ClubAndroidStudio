@@ -1,19 +1,63 @@
 package com.example.pro_club
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.example.pro_club.databinding.FragmentProfileBinding
-
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
+    private var photoUri: Uri? = null
+    // photoUri holds the URI of the photo taken or selected
+    // URI = Uniform Resource Identifier — like a URL but for local files
+    // Same as a file object in JavaScript
+
+    // ─── CAMERA LAUNCHER ────────────────────────────────────
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        // This runs after the camera takes a photo
+        // success = true means photo was taken successfully
+        if (success && photoUri != null) {
+            uploadProfilePicture(photoUri!!)
+        }
+    }
+    // registerForActivityResult is the modern way to handle
+    // results from other activities like camera or gallery
+    // Same as handling a Promise resolve in JavaScript
+
+    // ─── GALLERY LAUNCHER ───────────────────────────────────
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        // This runs after user picks a photo from gallery
+        // uri is the location of the selected image
+        if (uri != null) {
+            uploadProfilePicture(uri)
+        }
+    }
 
     // ─── 1. CREATE THE LAYOUT ───────────────────────────────
     override fun onCreateView(
@@ -25,145 +69,255 @@ class ProfileFragment : Fragment() {
         return binding.root
     }
 
-    // ─── 2. SET UP LOGIC AFTER LAYOUT IS READY ──────────────
+    // ─── 2. SET UP LOGIC ────────────────────────────────────
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // This runs ONCE when the profile tab first opens
-        // Same as useEffect(() => {}, []) in React
         loadUserProfile()
+        setupCameraButton()
+        setupEditProfileButton()
         setupLogoutButton()
+    }
 
+    // ─── 3. REFRESH ON RESUME ───────────────────────────────
+    override fun onResume() {
+        super.onResume()
+        loadUserProfile()
+    }
+
+    // ─── CAMERA BUTTON SETUP ────────────────────────────────
+    private fun setupCameraButton() {
+        binding.ivProfilePic.setOnClickListener {
+            // Show dialog to choose camera or gallery
+            // Same as showing a modal in React
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Update Profile Picture")
+                .setItems(arrayOf("📷 Take Photo", "🖼️ Choose from Gallery")) { _, which ->
+                    when (which) {
+                        0 -> openCamera()
+                        // Index 0 = Take Photo
+                        1 -> openGallery()
+                        // Index 1 = Choose from Gallery
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun openCamera() {
+        // Create a file to save the photo
+        val photoFile = createImageFile()
+        // Get a secure URI for the file using FileProvider
+        // FileProvider is needed because Android doesn't allow
+        // direct file paths to be shared between apps for security
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.example.pro_club.fileprovider",
+            photoFile
+        )
+        // Launch the camera with the URI to save to
+        cameraLauncher.launch(photoUri)
+    }
+
+    private fun openGallery() {
+        // Launch gallery to pick an image
+        // "image/*" means accept any image type
+        galleryLauncher.launch("image/*")
+    }
+
+    private fun createImageFile(): File {
+        // Create a unique filename using timestamp
+        // Same as Date.now() in JavaScript for unique names
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+            .format(Date())
+        val fileName = "JPEG_${timestamp}_"
+
+        // Get the Pictures directory on external storage
+        val storageDir = requireContext()
+            .getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        // Create a temporary file
+        return File.createTempFile(fileName, ".jpg", storageDir)
+    }
+
+    private fun uploadProfilePicture(uri: Uri) {
+        // Show loading state
+        binding.ivProfilePic.alpha = 0.5f
+        // alpha = 0.5 makes the image semi-transparent
+        // Same as opacity: 0.5 in CSS — shows something is loading
+
+        try {
+            // Convert URI to actual file bytes for upload
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes() ?: return
+            inputStream.close()
+            // readBytes() reads the entire file into memory as a ByteArray
+            // Same as FileReader.readAsArrayBuffer() in JavaScript
+
+            // Get user email for identifying which user to update
+            val prefs = requireContext()
+                .getSharedPreferences("user_session", Context.MODE_PRIVATE)
+            val email = prefs.getString("email", "") ?: ""
+
+            // Build multipart request — same as FormData in JavaScript
+            // Multipart is used when uploading files with other text data
+            val requestFile = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
+            val photoPart = MultipartBody.Part.createFormData(
+                "profile_pic",
+                "profile_${System.currentTimeMillis()}.jpg",
+                requestFile
+            )
+            val emailPart = email.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            // Build Retrofit for the upload
+            val retrofit = Retrofit.Builder()
+                .baseUrl("https://godchild.alwaysdata.net/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+
+            val service = retrofit.create(ApiService::class.java)
+
+            service.uploadProfilePic(emailPart, photoPart)
+                .enqueue(object : retrofit2.Callback<okhttp3.ResponseBody> {
+
+                    override fun onResponse(
+                        call: retrofit2.Call<okhttp3.ResponseBody>,
+                        response: retrofit2.Response<okhttp3.ResponseBody>
+                    ) {
+                        binding.ivProfilePic.alpha = 1.0f
+                        // Restore full opacity
+
+                        if (response.isSuccessful) {
+                            val rawJson = response.body()?.string()
+                            val json = org.json.JSONObject(rawJson ?: "{}")
+                            val filename = json.optString("filename", "")
+
+                            if (filename.isNotEmpty()) {
+                                // Save new profile pic filename to SharedPreferences
+                                prefs.edit().putString("profile_pic", filename).apply()
+                                // Load the new image into the ImageView
+                                loadProfileImage(filename)
+                                android.widget.Toast.makeText(
+                                    requireContext(),
+                                    "Profile picture updated!",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        } else {
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "Failed to upload picture",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+
+                    override fun onFailure(
+                        call: retrofit2.Call<okhttp3.ResponseBody>,
+                        t: Throwable
+                    ) {
+                        binding.ivProfilePic.alpha = 1.0f
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Network error: " + t.message,
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                })
+        } catch (e: Exception) {
+            binding.ivProfilePic.alpha = 1.0f
+            android.widget.Toast.makeText(
+                requireContext(),
+                "Error reading image",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun loadProfileImage(filename: String) {
+        if (filename.isEmpty() || filename == "default_avatar.png") return
+        val imageUrl = "https://godchild.alwaysdata.net/static/profile_pics/$filename"
+        com.bumptech.glide.Glide.with(requireContext())
+            .load(imageUrl)
+            .circleCrop()
+            .placeholder(android.R.drawable.ic_menu_myplaces)
+            .into(binding.ivProfilePic)
+    }
+
+    // ─── LOAD USER DATA FROM SHARED PREFERENCES ─────────────
+    private fun loadUserProfile() {
+        if (_binding == null) return
+
+        val prefs = requireContext()
+            .getSharedPreferences("user_session", Context.MODE_PRIVATE)
+
+        val username = prefs.getString("username", "User")
+        val email = prefs.getString("email", "No email found")
+        val phone = prefs.getString("phone", "---")
+        val github = prefs.getString("github", "---")
+        val profilePic = prefs.getString("profile_pic", "")
+
+        binding.tvUsername.text = username
+        binding.tvEmail.text = email
+        binding.tvPhone.text = phone
+        binding.tvGithub.text = github
+
+        loadGithubChart(github ?: "")
+        loadProfileImage(profilePic ?: "")
+    }
+
+    // ─── LOAD GITHUB CHART IN WEBVIEW ───────────────────────
+    private fun loadGithubChart(githubUsername: String) {
+        if (_binding == null) return
+        if (githubUsername.isEmpty() || githubUsername == "---") return
+
+        val webView = binding.webViewGithub
+        webView.settings.javaScriptEnabled = true
+        webView.settings.loadWithOverviewMode = true
+        webView.settings.useWideViewPort = true
+
+        val html = """
+            <html>
+            <body style="margin:0;padding:0;background:#111827;">
+            <img src="https://ghchart.rshah.org/$githubUsername" 
+                 width="100%" 
+                 style="display:block;"/>
+            </body>
+            </html>
+        """.trimIndent()
+
+        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+    }
+
+    // ─── EDIT PROFILE BUTTON ────────────────────────────────
+    private fun setupEditProfileButton() {
         binding.btnEditProfile.setOnClickListener {
             val intent = Intent(requireContext(), EditProfileActivity::class.java)
             startActivity(intent)
         }
     }
 
-    // ─── 3. REFRESH WHEN COMING BACK TO THIS TAB ────────────
-    override fun onResume() {
-        super.onResume()
-        // This runs EVERY TIME user comes back to the profile tab
-        // For example after editing profile and pressing back
-        // The profile data reloads automatically with new values
-        // Same as a focus listener in React Native:
-        // useFocusEffect(() => { loadProfile() })
-        loadUserProfile()
-    }
-
-    // ─── LOAD USER DATA FROM SHARED PREFERENCES ─────────────
-    private fun loadUserProfile() {
-        //Read user details from sharedpreferences
-        //these were saved when the user logged in via ApiHelper
-        //same as reading from localstorage in react:
-        //const user = JSON.parse(localstorage,getItem("user")
-
-        val prefs = requireContext()
-            .getSharedPreferences("user_session", Context.MODE_PRIVATE)
-
-        //read each value using the same keys Apihelper saved them
-
-        val username = prefs.getString("username", "User")
-        //getSting(key,default value) - return "user" if key not
-        val email = prefs.getString("email", "No email found")
-        val phone = prefs.getString("phone", "---")
-        val github = prefs.getString("github", "---")
-        val profilePic = prefs.getString("profile_pic", "")
-
-        //update the textview with the saved user data
-        binding.tvUsername.text = username
-        binding.tvEmail.text = email
-        binding.tvPhone.text = phone
-        binding.tvGithub.text = github
-
-        //load github chart
-        loadGithubChart(github ?: "")
-
-        // Load profile picture if exists
-        if (!profilePic.isNullOrEmpty() && profilePic != "default_avatar.png") {
-            val imageUrl = "https://godchild.alwaysdata.net/static/profile_pics/$profilePic"
-            // Load image using Glide
-            // Glide is an image loading library — same as next/image in React
-            // It handles downloading, caching and displaying images
-            com.bumptech.glide.Glide.with(requireContext())
-                .load(imageUrl)
-                .circleCrop()
-                // circleCrop() makes the image circular
-                // Like border-radius: 50% in CSS
-                .placeholder(android.R.drawable.ic_menu_myplaces)
-                // placeholder shows while image loads
-                // Same as a skeleton loader in React
-                .into(binding.ivProfilePic)
-        }
-    }
-
-    // ─── LOAD GITHUB CHART IN WEBVIEW ───────────────────────
-    private fun loadGithubChart(githubUsername: String) {
-        if (githubUsername.isEmpty() ||
-            githubUsername == "---" ||
-            _binding == null) return
-        // Don't load if no GitHub username saved
-
-        val webView = binding.webViewGithub
-        webView.settings.javaScriptEnabled = true
-        // Enable JavaScript so the chart renders properly
-        // Same as allowing scripts in an iframe
-
-        webView.settings.loadWithOverviewMode = true
-        webView.settings.useWideViewPort = true
-        // These make the chart fit the WebView width properly
-
-        // Load the GitHub chart image as HTML
-        // ghchart.rshah.org generates a contribution chart image
-        // Same as your <img src={ghchart.rshah.org/${username}}> in React
-        val html = """
-        <html>
-        <body style="margin:0;padding:0;background:#111827;">
-        <img src="https://ghchart.rshah.org/$githubUsername" 
-             width="100%" 
-             style="display:block;"/>
-        </body>
-        </html>
-    """.trimIndent()
-        // trimIndent() removes the leading spaces from each line
-        // Same as a template literal in JavaScript
-
-        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
-        // loadDataWithBaseURL loads HTML content directly into the WebView
-        // Same as setting innerHTML in JavaScript
-    }
-
     // ─── LOGOUT BUTTON ──────────────────────────────────────
     private fun setupLogoutButton() {
         binding.btnLogout.setOnClickListener {
-            //clear the user session from shared preferences
-            //same as localstorage remove item (user) in react
             val prefs = requireContext()
                 .getSharedPreferences("user_session", Context.MODE_PRIVATE)
             prefs.edit().clear().apply()
-            // .clear() removes all saved data from tis prefs file
-            //.apply() saves the changes permanently
 
             val schedulePrefs = requireContext()
                 .getSharedPreferences("schedule_prefs", Context.MODE_PRIVATE)
             schedulePrefs.edit().clear().apply()
 
-            //Navigate to SignInActivity and clear the back stack
             val intent = Intent(requireContext(), SignInActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            //FLAG ACTIVITY NEW TASK + FLAG ACTIVITY CLEAR TASK means
-            //start signin fresh and remove all previous screens
-            //so the user cannot press back to get to the main app
-            //same as navigate ("/signin",{ replace: true}) in react router
         }
     }
 
     // ─── CLEANUP ────────────────────────────────────────────
     override fun onDestroyView() {
         super.onDestroyView()
-        // Always set _binding to null in onDestroyView
-        // This prevents memory leaks in Fragments
-        // Same as cleanup in useEffect return function in React
         _binding = null
     }
 }

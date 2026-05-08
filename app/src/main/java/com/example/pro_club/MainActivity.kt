@@ -1,5 +1,8 @@
 package com.example.pro_club
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -8,8 +11,6 @@ import com.example.pro_club.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     // MainActivity is now just a shell — it holds the bottom
     // navigation bar and swaps fragments in and out
-    // All the schedule logic moved to ScheduleFragment.kt
-    // Same as App.tsx in React just handling routes — no business logic
 
     private lateinit var binding: ActivityMainBinding
 
@@ -18,9 +19,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Load Schedule tab first when app opens
-        // Same as your default route "/" in React Router
-        loadFragment(ScheduleFragment())
+        // 🚀 1. Setup Notifications Channel Immediately
+        createNotificationChannel()
+
+        // 🚀 2. Load Schedule tab first when app opens
+        if (savedInstanceState == null) {
+            loadFragment(ScheduleFragment())
+        }
 
         // Listen for bottom nav tab clicks
         binding.bottomNav.setOnItemSelectedListener { item ->
@@ -34,10 +39,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "pro_club_schedule_v2" // Must match NotificationReceiver
+            val channelName = "Schedule Reminders"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = "Notifications for your scheduled blocks"
+            }
+
+            // Get the system service and create the channel
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
     private fun loadFragment(fragment: Fragment) {
-        // Swaps the current fragment with the new one
-        // fragmentContainer is the FrameLayout in activity_main.xml
-        // Same as React Router swapping components based on route
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.fragmentContainer, fragment)

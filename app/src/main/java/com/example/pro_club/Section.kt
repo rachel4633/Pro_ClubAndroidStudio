@@ -10,7 +10,7 @@ data class Section(
     //"6:00 - 11:00" - the muted time shown on the right
     // of the section header next to the name
 
-    val blocks: List<Block>
+    val blocks: MutableList<Block>
     //This is a LIST of Block objects that belong to this section
     //List<Block> means it can ONLY hold blocks objects nothing else
     //Same as blocks: Block[] in your React TypeScript interface

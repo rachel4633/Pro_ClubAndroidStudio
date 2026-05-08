@@ -99,6 +99,23 @@
 
             </FrameLayout>
 
+            <TextView
+                android:id="@+id/tvEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✨ Add your tasks for the day!"
+                android:textColor="#8899BB"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="gone"/>
+            <!--
+                visibility=gone means hidden by default
+                We show it only when there are no blocks
+                Same as conditional rendering in React:
+                {blocks.length === 0 && <EmptyState/>}
+            -->
+
             <!-- TASK LIST -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"

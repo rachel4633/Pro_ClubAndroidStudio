@@ -46,9 +46,7 @@ class SignInActivity : AppCompatActivity() {
             goToMain()
             return
         }
-        window.setSoftInputMode(
-            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
-        )
+
 
         // If user_id is invalid clear the session and force re-login
         if (savedUsername != null && (savedUserId == null || savedUserId == "null" || savedUserId == "0")) {

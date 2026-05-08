@@ -41,13 +41,13 @@ class EditBlockActivity : AppCompatActivity() {
         val endHour = intent.getStringExtra("end_hour") ?: "0"
         val endMinute = intent.getStringExtra("end_minute") ?: "0"
         val motivation = intent.getStringExtra("motivation") ?: ""
-        val section = intent.getStringExtra("section") ?: "Morning"
 
         // Change the title to show we are editing not adding
         binding.btnAddBlock.text = "Save Changes"
 
         // Set up spinners first
-        setupSpinners(section, taskType)
+        // We only pass taskType now because section is calculated by time
+        setupSpinners(taskType)
 
         // Pre-fill all the fields with existing block data
         // Same as setting defaultValue in a React controlled input
@@ -71,7 +71,11 @@ class EditBlockActivity : AppCompatActivity() {
             val newStartMinute = binding.etStartMinute.text.toString().trim()
             val newEndHour = binding.etEndHour.text.toString().trim()
             val newEndMinute = binding.etEndMinute.text.toString().trim()
-            val newSection = binding.spinnerSection.selectedItem.toString()
+
+            // 🚀 NEW LOGIC: Automatically determine section based on the hour typed
+            val startH = newStartHour.toIntOrNull() ?: 0
+            val newSection = getSectionFromTime(startH)
+
             val newTaskType = binding.spinnerType.selectedItem.toString()
 
             if (newTitle.isEmpty() || newDesc.isEmpty() ||
@@ -86,26 +90,33 @@ class EditBlockActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupSpinners(currentSection: String, currentType: String) {
-        val sections = listOf("Morning", "Classes", "Afternoon", "Evening", "General")
-        val sectionAdapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, sections)
-        binding.spinnerSection.adapter = sectionAdapter
-        // Pre-select the current section
-        binding.spinnerSection.setSelection(
-            sections.indexOf(currentSection).takeIf { it >= 0 } ?: 0
-        )
-        // takeIf { it >= 0 } means use the index only if found
-        // otherwise default to 0 (first item)
+    private fun setupSpinners(currentType: String) {
+        // We removed the sectionAdapter and spinnerSection logic here
+        // because the section is now determined by the getSectionFromTime() function
 
+        // Block type dropdown options
         val types = listOf("routine", "workout", "coding", "class", "break", "football", "sleep")
         val typeAdapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item, types)
         binding.spinnerType.adapter = typeAdapter
+
         // Pre-select the current type
         binding.spinnerType.setSelection(
             types.indexOf(currentType).takeIf { it >= 0 } ?: 0
         )
+    }
+
+    private fun getSectionFromTime(startHour: Int): String {
+        // Automatically determine section based on start hour
+        // So user doesn't have to manually pick section
+        // Same as a computed property in React
+        return when {
+            startHour in 5..10 -> "Morning"
+            startHour in 11..13 -> "Classes"
+            startHour in 14..16 -> "Afternoon"
+            startHour in 17..21 -> "Evening"
+            else -> "General"
+        }
     }
 
     private fun editBlock(
@@ -135,12 +146,13 @@ class EditBlockActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val rawJson = response.body()?.string()
                     val json = JSONObject(rawJson ?: "{}")
-                    if (json.optString("status") == "success") {
+                    // Checks if the API returned a success status
+                    if (json.optString("status") == "success" || json.optString("message").contains("success", true)) {
                         // Block updated — close and return to schedule
                         // onResume() in ScheduleFragment will reload the list
                         finish()
                     } else {
-                        showError("Failed to update block")
+                        showError(json.optString("message", "Failed to update block"))
                     }
                 } else {
                     showError("Server error — please try again")

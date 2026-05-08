@@ -74,4 +74,15 @@ interface ApiService {
         @Field("github_username") github: String,
         @Field("current_password") password: String
     ): Call<ResponseBody>
+
+    @Multipart
+    @POST("api/update_profile_pic")
+    fun uploadProfilePic(
+        @Part("email") email: okhttp3.RequestBody,
+        @Part photo: okhttp3.MultipartBody.Part
+    ): retrofit2.Call<okhttp3.ResponseBody>
+// @Multipart means this request sends files + text together
+// Same as FormData with a file in JavaScript:
+// formData.append("profile_pic", file)
+// formData.append("email", email)
 }
