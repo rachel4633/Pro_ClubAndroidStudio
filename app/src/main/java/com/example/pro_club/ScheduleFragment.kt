@@ -350,7 +350,7 @@ class ScheduleFragment : Fragment() {
         if (!prefs.contains("notifications_enabled")) {
             prefs.edit().putBoolean("notifications_enabled", true).apply()
         }
-        val notifEnabled = prefs.getBoolean("notifications_enabled", false)
+        val notifEnabled = prefs.getBoolean("notifications_enabled", true)
         updateNotificationButton(notifEnabled)
 
         binding.btnNotifications.setOnClickListener {

@@ -35,6 +35,15 @@ object NotificationScheduler {
     }
 
     private fun scheduleBlockNotification(context: Context, block: Block) {
+        //add permission check before anything else
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (context.checkSelfPermission(
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                android.util.Log.w("NOTIF", "POST_NOTIFICATIONS permission not granted")
+                return  // Exit silently — don't crash
+            }
+        }
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE)
                 as AlarmManager
         // AlarmManager is Android's system scheduler
@@ -97,7 +106,9 @@ object NotificationScheduler {
         } catch (e: Exception) {
             android.util.Log.e("NOTIF", "Failed to schedule: ${block.title}")
         }
+        }
     }
+
 
     private fun cancelAllNotifications(context: Context, blocks: List<Block>) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE)

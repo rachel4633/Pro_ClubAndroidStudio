@@ -67,6 +67,15 @@ class BootReceiver : BroadcastReceiver() {
                 }
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     android.util.Log.e("BOOT", "Failed to reschedule: ${t.message}")
+
+                    val retrofit = Retrofit.Builder()
+                        .baseUrl("https://godchild.alwaysdata.net/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(okhttp3.OkHttpClient.Builder()
+                            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                            .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                            .build())
+                        .build()
                 }
             })
 
