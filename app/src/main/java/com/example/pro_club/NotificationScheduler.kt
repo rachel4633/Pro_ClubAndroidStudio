@@ -35,13 +35,15 @@ object NotificationScheduler {
     }
 
     private fun scheduleBlockNotification(context: Context, block: Block) {
-        // ✅ CHECK POST_NOTIFICATIONS PERMISSION FIRST
+        // Check POST_NOTIFICATIONS permission first on Android 13+
+        // Without this the app crashes silently on newer phones
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (context.checkSelfPermission(
                     android.Manifest.permission.POST_NOTIFICATIONS
                 ) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 android.util.Log.w("NOTIF", "POST_NOTIFICATIONS permission not granted")
-                return  // Exit silently — don't crash
+                return
+                // Exit silently — don't crash
             }
         }
 
@@ -97,7 +99,8 @@ object NotificationScheduler {
                     // setExactAndAllowWhileIdle fires even in battery saver mode
                     // RTC_WAKEUP = use real clock time and wake device if sleeping
                 } else {
-                    // ✅ FALLBACK: Use inexact alarm if exact alarms not allowed
+                    // Fallback: use inexact alarm if exact alarms not allowed
+                    // This can happen if user denied exact alarm permission
                     alarmManager.setAndAllowWhileIdle(
                         AlarmManager.RTC_WAKEUP,
                         calendar.timeInMillis,
@@ -106,6 +109,7 @@ object NotificationScheduler {
                     android.util.Log.w("NOTIF", "canScheduleExactAlarms=false, using fallback")
                 }
             } else {
+                // Below Android 12 — exact alarms always allowed
                 alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
                     calendar.timeInMillis,
@@ -113,30 +117,19 @@ object NotificationScheduler {
                 )
             }
         } catch (e: SecurityException) {
-<<<<<<< HEAD
-            android.util.Log.e("NOTIF", "Failed to schedule: ${block.title}: ${e.message}", e)
-=======
-            // ✅ BETTER ERROR HANDLING
+            // SecurityException means exact alarm permission was revoked
+            // Try fallback inexact alarm instead of crashing
             android.util.Log.e("NOTIF", "SecurityException scheduling ${block.title}: ${e.message}", e)
->>>>>>> 636b84c47cebeb8a07eebb8b869ddb1bd1e21be3
-            // Try fallback
             try {
                 alarmManager.setAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
                     calendar.timeInMillis,
                     pendingIntent
                 )
-<<<<<<< HEAD
-            } catch (fallbackE: Exception){
-                android.util.Log.e("NOTIF", "Fallback also failed: ${fallbackE.message}", fallbackE)
-            }
-        }catch (e: Exception){
-=======
             } catch (fallbackE: Exception) {
                 android.util.Log.e("NOTIF", "Fallback also failed: ${fallbackE.message}", fallbackE)
             }
         } catch (e: Exception) {
->>>>>>> 636b84c47cebeb8a07eebb8b869ddb1bd1e21be3
             android.util.Log.e("NOTIF", "Failed to schedule ${block.title}: ${e.message}", e)
         }
     }
